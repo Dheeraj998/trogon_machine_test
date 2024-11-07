@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:trogon_media_machine_test/common/common_text.dart';
 import 'package:trogon_media_machine_test/common/shimmer_widget.dart';
 import 'package:trogon_media_machine_test/controller/home_controller.dart';
+import 'package:trogon_media_machine_test/utils/api_services/api_response.dart';
 import 'package:trogon_media_machine_test/utils/theme/app_color.dart';
 import 'package:trogon_media_machine_test/view/product_detail_screen.dart';
 import 'package:trogon_media_machine_test/view/widgets/product_listtile_widget.dart';
@@ -54,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemBuilder: (context, index) => Container(
                           height: 70.h,
                           width: 70.w,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                               shape: BoxShape.circle,
                               color: AppColors.lightOrange),
                         ),
@@ -62,72 +63,97 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemCount: 5),
               ),
               30.verticalSpace,
-              TextFormField(
-                controller: _searchCtr,
-                decoration: InputDecoration(
-                  isDense: true,
-                  suffixIcon: GestureDetector(
-                    onTap: () {},
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.w),
-                      child: Icon(Icons.search),
-                    ),
-                  ),
-                  hintText: "Search Products...",
-                  hintStyle: TextStyle(
-                      color: AppColors.lightGreyTextColor, fontSize: 13.sp),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20.r),
-                      borderSide: BorderSide(color: AppColors.borderColor)),
-                ),
-              ),
+              _searchWidget(),
               30.verticalSpace,
-              Consumer<HomeController>(builder: (context, home, _) {
-                return Expanded(
-                    child: home.homeApiResponse?.loading == true
-                        ? GridView.builder(
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2, // number of items in each row
-                              mainAxisSpacing: 8.0, // spacing between rows
-                              crossAxisSpacing: 8.0, // spacing between columns
-                            ),
-                            itemBuilder: (context, index) {
-                              return ErrorShimmerWidget(
-                                  width: 40.w, height: 40.h);
-                            },
-                            itemCount: 10,
-                          )
-                        : GridView.builder(
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2, // number of items in each row
-                              mainAxisSpacing: 15, // spacing between rows
-                              crossAxisSpacing: 15, // spacing between columns
-                            ),
-                            padding:
-                                EdgeInsets.all(8.0), // padding around the grid
-                            itemCount:
-                                home.homeList?.length, // total number of items
-                            itemBuilder: (context, index) {
-                              return GestureDetector(
-                                onTap: () {
-                                  Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (context) => ProductDetailScreen(
-                                            productModel: home.homeList?[index],
-                                          )));
-                                },
-                                child: ProductListTileWidget(
-                                  productModel: home.homeList?[index],
-                                ),
-                              );
-                            },
-                          ));
-              })
+              _listWidget()
             ],
           ),
         ),
       ),
     );
+  }
+
+  Consumer<HomeController> _listWidget() {
+    return Consumer<HomeController>(builder: (context, home, _) {
+      return Expanded(
+          child: home.homeApiResponse?.loading == true
+              ? GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, // number of items in each row
+                    mainAxisSpacing: 8.0, // spacing between rows
+                    crossAxisSpacing: 8.0, // spacing between columns
+                  ),
+                  itemBuilder: (context, index) {
+                    return ErrorShimmerWidget(width: 40.w, height: 40.h);
+                  },
+                  itemCount: 10,
+                )
+              : home.homeApiResponse?.status == APIstatus.onNetworkError
+                  ? const Column(
+                      children: [CommonText(text: "No internet")],
+                    )
+                  : GridView.builder(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2, // number of items in each row
+                        mainAxisSpacing: 15, // spacing between rows
+                        crossAxisSpacing: 15, // spacing between columns
+                      ),
+                      padding:
+                          const EdgeInsets.all(8.0), // padding around the grid
+                      itemCount:
+                          home.filteredList?.length, // total number of items
+                      itemBuilder: (context, index) {
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) => ProductDetailScreen(
+                                      productModel: home.filteredList?[index],
+                                    )));
+                          },
+                          child: ProductListTileWidget(
+                            productModel: home.filteredList?[index],
+                          ),
+                        );
+                      },
+                    ));
+    });
+  }
+
+  Consumer<HomeController> _searchWidget() {
+    return Consumer<HomeController>(builder: (context, home, _) {
+      return TextFormField(
+        controller: _searchCtr,
+        onChanged: (value) {
+          context.read<HomeController>().searchFn(text: value);
+        },
+        decoration: InputDecoration(
+          isDense: true,
+          prefixIcon: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.w),
+            child: Icon(Icons.search),
+          ),
+          suffixIcon: Visibility(
+            visible: _searchCtr.text.isNotEmpty,
+            child: GestureDetector(
+              onTap: () {
+                context.read<HomeController>().clearSearchFn();
+                _searchCtr.clear();
+              },
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.w),
+                child: Icon(Icons.close),
+              ),
+            ),
+          ),
+          hintText: "Search Products...",
+          hintStyle:
+              TextStyle(color: AppColors.lightGreyTextColor, fontSize: 13.sp),
+          border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20.r),
+              borderSide: BorderSide(color: AppColors.borderColor)),
+        ),
+      );
+    });
   }
 }

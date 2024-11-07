@@ -27,13 +27,56 @@ class ProductDetailScreen extends StatelessWidget {
                     fit: BoxFit.contain,
                   ),
                 ),
-                20.verticalSpace,
-                CommonText(
-                  text: productModel?.name ?? "",
-                  maxLines: 2,
-                  fontSize: 20.sp,
-                  textOverflow: TextOverflow.ellipsis,
-                  fontWeight: FontWeight.w600,
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 30.w),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      20.verticalSpace,
+                      CommonText(
+                        text: productModel?.name ?? "",
+                        maxLines: 2,
+                        fontSize: 20.sp,
+                        textOverflow: TextOverflow.ellipsis,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      5.verticalSpace,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          CommonText(
+                            text: "\$ ${productModel?.price?.toString()}" ?? "",
+                            maxLines: 2,
+                            fontSize: 15.sp,
+                            textOverflow: TextOverflow.ellipsis,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          Row(
+                            children: [
+                              CommonText(
+                                text:
+                                    "${productModel?.rating?.toString()}" ?? "",
+                                maxLines: 2,
+                                fontSize: 15.sp,
+                                textOverflow: TextOverflow.ellipsis,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              Icon(
+                                Icons.star,
+                                size: 13.r,
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                      10.verticalSpace,
+                      CommonText(
+                        text: productModel?.description ?? "",
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
